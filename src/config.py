@@ -83,7 +83,7 @@ MODES_ELEVATION_FILTERING = [
                     Mode('Elevation filtering', 
                         _ls_use_last_fix = True,
                         _ls_weight_algorithm = WeightAlgorithms().algo_linear,
-                        _elev_mask = 15),
+                        _elev_mask = 20),
 
                     # Normal LS filtering low elevation SVs and low CN0
                     Mode('Elevation and CN0 filtering', 
@@ -98,14 +98,14 @@ MODES_LSE_VS_FE     = [
                     Mode('LS',
                          _ls_use_last_fix = True,
                          _elev_mask = 20,
-                         _cn0_mask = 30),
+                         _cn0_mask = 20),
                     
                     # LS + Exclusion
                     Mode('LS FE',
                          _ls_use_last_fix = True,
                          _ls_exclusion = True,
                          _elev_mask = 20,
-                         _cn0_mask = 30),
+                         _cn0_mask = 20),
                         ]
 
 MODES_LSE_VS_WLS     = [
@@ -113,7 +113,7 @@ MODES_LSE_VS_WLS     = [
                     Mode('LS',
                          _ls_use_last_fix = True,
                          _elev_mask = 20,
-                         _cn0_mask = 30),
+                         _cn0_mask = 20),
                     
                     # WLS ELEVATION + CN0
                     Mode('WLS ELEVATION',
@@ -123,7 +123,7 @@ MODES_LSE_VS_WLS     = [
                         _ls_weight_algorithm = WeightAlgorithms().algo_cn0_elev),
 
                     # WLS TUNED ELEVATION + CN0
-                    Mode('WLS PROPOSED',
+                    Mode('WLS TUNED ELEVATION',
                          _ls_use_last_fix = True,
                          _elev_mask = 20,
                         _cn0_mask = 20, 
@@ -134,18 +134,18 @@ MODES_LSE_VS_MMSE     = [
                     # LS
                     Mode('LS',
                          _ls_use_last_fix = False,
-                         _ls_weight_algorithm = WeightAlgorithms().algo_cn0_elev_tuned,
+                         _ls_weight_algorithm = WeightAlgorithms().algo_linear,
                          _elev_mask = 20,
                          _cn0_mask = 20),
 
                     # MMSE Linear
                     Mode('MMSE Linear',
                          _elev_mask = 20,
-                        _cn0_mask = 30, 
+                        _cn0_mask = 20, 
                         _use_ls = False,
                         _ls_weight_algorithm = WeightAlgorithms().algo_linear,
                         _mmse_px_mpy = 1,
-                        _mmse_r_mpy = 0.1)
+                        _mmse_r_mpy = 0.5)
                         ]
 
 class Config:
@@ -166,7 +166,7 @@ class Config:
     **NOTE** on **fileNav**: when downloaded from server it is stored in /data/nav. If when reading the downloaded file it triggers an error saying that it cannot open the file, try to manually uncompress it and write the uncompressed filename in fileNav.
 
     **NOTE** on **use_pvt_ref_as_origin**: if True, it will use the user-defined PVT reference, **only if** the RINEX XYZ reference is not present.
-    If the RINEX XYZ reference is present, it will use that one instead of the user-defined.
+    If the RINEX XYZ reference is present, it will use that one instead of the user-sdefined.
     Program assumes that reference in RINEX, if present, is correct. If False, it will use the 1st calculated PVT as reference.
     This corresponds to the 1st calculated mode: if LS and MMSE are run in that order, the reference will be the LS result.
 

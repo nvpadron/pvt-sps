@@ -1,7 +1,10 @@
+import matplotlib
+matplotlib.use('Qt5Agg')
+
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+from matplotlib import use
 from manager import manager, HelpersDataframe
 from utils import Constants, DTypes
 from third.plotWindow import plotWindow
@@ -10,39 +13,50 @@ class Plots:
 
     def make_plots():
         pwin = plotWindow()
+        plt.ion()
 
         f,fn = Plots.enu_stats()
-        for ii in range(0,len(f)):
+        plt.pause(1)
+        for ii in reversed(range(0,len(f))):
             pwin.addPlot(fn[ii], f[ii])
             plt.savefig('imgs/' + manager.config.imgsdir + '/' + fn[ii] + '.png', bbox_inches='tight')
             plt.close()
 
         f, fn = Plots.enu()
-        for ii in range(0,len(f)):
+        plt.pause(1)
+        for ii in reversed(range(0,len(f))):
             pwin.addPlot(fn[ii], f[ii])
             plt.savefig('imgs/' + manager.config.imgsdir + '/' + fn[ii] + '.png', bbox_inches='tight')
             plt.close()
 
         f,fn = Plots.dops()
-        for ii in range(0,len(f)):
+        plt.pause(1)
+        for ii in reversed(range(0,len(f))):
+            plt.show()
             pwin.addPlot(fn[ii], f[ii])
             plt.savefig('imgs/' + manager.config.imgsdir + '/' + fn[ii] + '.png', bbox_inches='tight')
             plt.close()
 
         f, fn = Plots.meas()
-        for ii in range(0,len(f)):
+        plt.pause(1)
+        for ii in reversed(range(0,len(f))):
+            plt.show()
             pwin.addPlot(fn[ii], f[ii])
             plt.savefig('imgs/' + manager.config.imgsdir + '/' + fn[ii] + '.png', bbox_inches='tight')
             plt.close()
 
         f,fn = Plots.skyplot()
-        for ii in range(0,len(f)):
+        plt.pause(1)
+        for ii in reversed(range(0,len(f))):
+            plt.show()
             pwin.addPlot(fn[ii], f[ii])
             plt.savefig('imgs/' + manager.config.imgsdir + '/' + fn[ii] + '.png', bbox_inches='tight')
             plt.close()
 
         f,fn = Plots.skyplot(plot_single=False)
-        for ii in range(0,len(f)):
+        plt.pause(1)
+        for ii in reversed(range(0,len(f))):
+            plt.show()
             pwin.addPlot(fn[ii], f[ii])
             plt.savefig('imgs/' + manager.config.imgsdir + '/' + fn[ii] + '.png', bbox_inches='tight')
             plt.close()
@@ -135,7 +149,7 @@ class Plots:
         ax[1].set_xlabel('Time [seconds]')
         ax[1].set_ylabel('Pseudoranges [Km]')
         f[3].tight_layout()
-        
+        plt.show()
         return f,fn
     
     def enu():
@@ -157,6 +171,7 @@ class Plots:
         plt.ylabel('East [m]')
         
         f[0].tight_layout()
+        plt.show()
         return f,fn
 
     def enu_stats():
@@ -179,9 +194,7 @@ class Plots:
         for mode in manager.config.modes:
             idxhdop = Plots.getIdxhdop(mode.idx)
             northError = np.array(manager.results.rxResultHandler.pvt[mode.idx]['n'][idxhdop], dtype = DTypes.FLOAT)
-            #northError -= np.nanmean(northError)
             eastError = np.array(manager.results.rxResultHandler.pvt[mode.idx]['e'][idxhdop], dtype = DTypes.FLOAT)
-            #eastError -= np.nanmean(eastError)
             ax[0].hist(northError)
             ax[1].plot(t[idxhdop], northError,'.')
             ax[2].hist(eastError)
@@ -211,6 +224,7 @@ class Plots:
         ax[3].set_ylabel('Easth Error [m]')
 
         f[0].tight_layout()
+        plt.show()
         return f,fn
 
     def dops():
@@ -257,6 +271,7 @@ class Plots:
         ax[2].set_ylabel('meters')
 
         f[0].tight_layout()
+        plt.show()
         return f,fn
     
     
@@ -316,7 +331,7 @@ class Plots:
         ax.set_yticks(range(0, 90+10, 10))                   # Define the yticks
         yLabel = ['90', '', '', '60', '', '', '30', '', '', '']
         ax.set_yticklabels(yLabel)
-
+        plt.show()
         return f,fn
     
     

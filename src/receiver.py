@@ -216,13 +216,11 @@ class RxPVTCalculation:
         self.svResultHandlerWindow = SvResultHandler()
         self.xRx = np.zeros(4, dtype=DTypes.FLOAT)
         self.xRxDelta = np.zeros(4, dtype=DTypes.FLOAT) + Constants.epsilonErrMag3
-        self.xRxDeltaMMSE = np.zeros(4, dtype=DTypes.FLOAT) + Constants.epsilonErrMag3
         self.jacobian = np.empty([],dtype=DTypes.FLOAT)
         self.S = np.eye(4, dtype=DTypes.FLOAT) * Constants.epsilonErrMag3 
         self.weightsMatrix = np.empty([],dtype=DTypes.FLOAT)
         self.covMatrix = np.empty([], dtype=DTypes.FLOAT)
         self.resnorm = 0
-        self.xRxDeltaU = np.zeros(4, dtype=DTypes.FLOAT) + Constants.epsilonErrMag3
 
 
         if manager.config.use_pvt_ref_as_origin:
@@ -431,26 +429,31 @@ class RxPVTCalculation:
         # Get pseudoranges
         pseudos = dataSys.pseudorange[manager.currentTimeEpoch.t_ix, self.svResultHandlerWindow.measIdx]
         y = self._process_pseudo(pseudos)
-        Px = np.eye(4) * y.var()**2 * mode.mmse_px_mpy
+
+        # Prior PSD
+        rngGeom = np.linalg.norm(self.svResultHandlerWindow.pos[:,:3]- self.xRx[:3],axis=1)
+        fi = np.array([yy * (2*ss - self.xRx[:3]) / rr**3 + (ss - self.xRx[:3])**2 / rr**2 \
+                       for yy,rr,ss in zip(y,rngGeom,self.svResultHandlerWindow.pos[:,:3])]).sum(axis = 0)
+        fi = np.hstack([fi, 2 * self.svResultHandlerWindow.numMeas])
+        fi = fi / y.var()
+        Px = np.diag(1/fi) * mode.mmse_px_mpy
 
         # Compute Jacobian
         H = self._process_jacobian()
 
-        # Prepare the weights for current mode
+        # Prepare the weights for current mode and calculate measurement covariance matrix
         weights = self._prepare_weights(mode.ls_weight_algorithm, dataSys, y)
-
-        W = np.diag(1/weights**2)
-        R = W * mode.mmse_r_mpy + np.eye(y.size)*Constants.epsilonErrMag6
+        R = np.diag(1/weights**2) * mode.mmse_r_mpy + np.eye(y.size)*Constants.epsilonErrMag6
 
         # Check geometry to avoid algorithm divergence due to linear dependent rows in the Jacobian
         if not self._check_singular(H):
             is_last_iter_ok_mode = False
             return is_last_iter_ok_mode
         
+        # MMSE Estimation covariance matrix
         self.S = np.linalg.inv(np.linalg.inv(Px) +  H.T @ np.linalg.inv(R) @ H)
         self.covMatrix = self.S
-        self.xRxDeltaU = (self.S @ H.T @ np.linalg.inv(R)) @ y
-        self.xRxDelta = self.xRxDeltaU
+        self.xRxDelta = (self.S @ H.T @ np.linalg.inv(R)) @ y
         
         self.xRx += self.xRxDelta
         self.resnorm = np.linalg.norm(y,2)
@@ -505,7 +508,7 @@ class RxPVTCalculation:
                 else:  # Every iteration is independent from the previous, so re-initialize arrays
                     self.xRx = np.zeros(4, dtype=DTypes.FLOAT)
             else:
-                self.xRxDelta = self.xRxDeltaMMSE
+                self.xRxDelta = np.zeros(4, dtype=DTypes.FLOAT)
                 if manager.monitor.last_pvt_valid_bool: # Initialize to last calculated solution
                     self.xRx = np.array(manager.results.rxResultHandler.pvt[mode.idx][['x','y','z','dt']], dtype=DTypes.FLOAT)[manager.monitor.last_pvt_valid_idx]
                 else:  # Every iteration is independent from the previous, so re-initialize arrays
@@ -520,7 +523,6 @@ class RxPVTCalculation:
                 else:
                     # Run MMSE
                     is_last_iter_ok_mode = self._process_mmse(dataSys, mode)
-                self.xRxDeltaMMSE = self.xRxDelta
             resnorm = np.hstack([resnorm, self.resnorm])
 
             # Return in case that calculation for this mode is not OK.
