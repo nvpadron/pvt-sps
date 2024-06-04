@@ -145,7 +145,7 @@ MODES_LSE_VS_MMSE     = [
                         _use_ls = False,
                         _ls_weight_algorithm = WeightAlgorithms().algo_linear,
                         _mmse_px_mpy = 1,
-                        _mmse_r_mpy = 0.5)
+                        _mmse_r_mpy = 0.1)
                         ]
 
 class Config:

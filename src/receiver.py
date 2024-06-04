@@ -430,11 +430,16 @@ class RxPVTCalculation:
         pseudos = dataSys.pseudorange[manager.currentTimeEpoch.t_ix, self.svResultHandlerWindow.measIdx]
         y = self._process_pseudo(pseudos)
 
-        # Prior PSD
-        rngGeom = np.linalg.norm(self.svResultHandlerWindow.pos[:,:3]- self.xRx[:3],axis=1)
-        fi = np.array([yy * (2*ss - self.xRx[:3]) / rr**3 + (ss - self.xRx[:3])**2 / rr**2 \
-                       for yy,rr,ss in zip(y,rngGeom,self.svResultHandlerWindow.pos[:,:3])]).sum(axis = 0)
-        fi = np.hstack([fi, 2 * self.svResultHandlerWindow.numMeas])
+        # Prior PDF
+        xRxMat = self.xRx[:3].repeat(self.svResultHandlerWindow.numMeas).reshape(3,self.svResultHandlerWindow.numMeas).T
+        rngGeom = np.linalg.norm(self.svResultHandlerWindow.pos[:,:3] - xRxMat,axis=1)
+
+        term_1_num = self.svResultHandlerWindow.pos[:,:3] - xRxMat
+        term_1_den = (rngGeom).repeat(3).reshape(rngGeom.size,3)
+        term_2_num = (rngGeom**2).repeat(3).reshape(rngGeom.size,3) + (self.svResultHandlerWindow.pos[:,:3] - xRxMat)
+        term_2_den = (rngGeom**3).repeat(3).reshape(rngGeom.size,3)
+        fi = np.abs(np.sum(term_1_num / term_1_den - term_2_num / term_2_den, axis = 0))
+        fi = np.hstack([fi, self.svResultHandlerWindow.numMeas])
         fi = fi / y.var()
         Px = np.diag(1/fi) * mode.mmse_px_mpy
 
