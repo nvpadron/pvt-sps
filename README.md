@@ -1,8 +1,7 @@
 # PVT-SPS
 GNSS Standalone PVT Standard Positioning Service (GPS L1)
 
-See detailed in description and usage in [PVT-SPS Documentation](https://www.spacewayfinder.com/docs/pvt-sps/index.html)
-
+See detailed theory, description and usage in [PVT-SPS ](https://spacewayfinder.com/software/pvt-sps/) & [Documentation](https://www.spacewayfinder.com/docs/pvt-sps/index.html)
 
 Nicolás Padrón - https://www.spacewayfinder.com/
 
